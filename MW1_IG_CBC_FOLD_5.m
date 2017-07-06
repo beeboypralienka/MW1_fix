@@ -10,18 +10,17 @@ clc; clear;
 %--------------
 MW1_01_IG = csvread('03_SeleksiFitur\MW1_IG\MW1_IG.csv');
 
+%----------
+% Seed = 1
+%----------
+seed = 1;
+rng(seed); %Seed nilai random, jadi ga usah run berkali-kali
+
 %-------------
 % K-Fold = 5
 %-------------
 k = 5;
 vektorMW1 = MW1_01_IG(:,1);
-
-%--------
-% Seed
-%--------
-seed = 9;
-rng(seed); %Seed nilai random, jadi ga usah run berkali-kali
-
 cvFolds = crossvalind('Kfold', vektorMW1, k);
 clear vektorMW1; 
     
@@ -57,7 +56,7 @@ for iFitur = 37 : -1 : 1 %Decrement
                 MW1_03_Test{1,iFitur}{iFold,1}(iTesting,iFitur+2) = iBarisData; %Tambah urutan data
                 iTesting = iTesting + 1; %Counter TESTING
             end                        
-        end
+        end        
         clear iBarisData iTesting iTraining;
         
         %------------------------------------------------------
@@ -76,7 +75,40 @@ for iFitur = 37 : -1 : 1 %Decrement
                 MW1_05_Train_True{1,iFitur}{iFold,1}(fgTrue,:) = MW1_02_Train{1,iFitur}{iFold,1}(iJumlahTrain,:); %Ambil data TRUE dari urutan TRAINING  
             end                        
         end
-        clear fgFalse fgTrue iJumlahTrain;                      
+        %---------------------------------------------------------
+        % Update keterangan TRAINING :
+        %---------------------------------------------------------
+        % [1] Jumlah TRAINING
+        % [2] Jumlah TRAINING yang FALSE
+        % [3] Jumlah TRAINING yang TRUE
+        % [4] Jumlah duplikasi TRAINING dengan kelas yang berbeda
+        %---------------------------------------------------------
+        jumlahUnique = size( unique( MW1_02_Train{1,end}{iFold,1}(:,1:end-2),'rows' ) ,1); %end-2 itu karena selain semua fitur, ada plus kelas dan plus urutannya
+        duplikasi = iJumlahTrain - jumlahUnique; %Hitung duplikasi di data TRAINING
+        MW1_02_Train_Keterangan{iFold,1} = [iJumlahTrain fgFalse fgTrue duplikasi]; %Keterangan TRAINING
+        clear fgFalse fgTrue iJumlahTrain jumlahUnique duplikasi; 
+        
+        %---------------------------------------------------------
+        % Update keterangan TESTING :
+        %---------------------------------------------------------
+        % [1] Jumlah TESTING
+        % [2] Jumlah TESTING yang FALSE
+        % [3] Jumlah TESTING yang TRUE
+        % [4] Jumlah duplikasi TESTING dengan kelas yang berbeda
+        %---------------------------------------------------------
+        fgFalse = 0;
+        fgTrue = 0;
+        for iJumlahTesting = 1 : size(MW1_03_Test{1,end}{iFold,1},1)
+            if MW1_03_Test{1,end}{iFold,1}(iJumlahTesting,end-1) == 0
+                fgFalse = fgFalse + 1;
+            else
+                fgTrue = fgTrue + 1;
+            end
+        end
+        jumlahUnique = size( unique( MW1_03_Test{1,end}{iFold,1}(:,1:end-2),'rows' ) ,1); %end-2 itu karena selain semua fitur, ada plus KELAS dan plus URUTAN
+        duplikasi = iJumlahTesting - jumlahUnique; %Hitung duplikasi di data TESTING
+        MW1_03_Test_Keterangan{iFold,1} = [iJumlahTesting fgFalse fgTrue duplikasi]; %Keterangan TESTING
+        clear fgFalse fgTrue iJumlahTesting jumlahUnique duplikasi; 
                                  
         %--------------------------------------------------------------------------------------
         % Cek pemilihan titik C1 jangan sampai pilih yang duplikat dengan kelas berbeda (TRUE)
@@ -126,19 +158,7 @@ for iFitur = 37 : -1 : 1 %Decrement
                 urutanKTRUE = urutanKTRUE + 1; %Nanti ambil urutan kTrue selanjutnya
             end            
         end 
-        clear urutanKTRUE duplikatC2 TrainFalse;       
-
-%         %---------------------------------------------------
-%         % Tentukan C1 dari kumpulan kelas FALSE secara acak
-%         %--------------------------------------------------- 
-%         kFalse{1,iFitur}{iFold,1} = randperm(size(MW1_04_Train_False{1,37}{iFold,1},1)); % acak urutan data "trainingFalse"
-%         MW1_06_Titik_C1{1,iFitur}{iFold,1} = MW1_04_Train_False{1,iFitur}{iFold,1}(kFalse{1,37}{iFold,1}(1,1),:); % urutan pertama hasil acak, diambil sebagai C1  
-%         
-%         %--------------------------------------------------
-%         % Tentukan C2 dari kumpulan kelas TRUE secara acak
-%         %--------------------------------------------------        
-%         kTrue{1,iFitur}{iFold,1} = randperm(size(MW1_05_Train_True{1,37}{iFold,1},1)); % acak urutan data "trainingTrue"         
-%         MW1_07_Titik_C2{1,iFitur}{iFold,1} = MW1_05_Train_True{1,iFitur}{iFold,1}(kTrue{1,37}{iFold,1}(1,1),:); % urutan pertama hasil acak, diambil sebagai C2         
+        clear urutanKTRUE duplikatC2 TrainFalse;            
         
 %==============================================================================================
 %                                    ==  FASE 1  ===
@@ -307,14 +327,14 @@ for iFitur = 37 : -1 : 1 %Decrement
         % Menghitung rata-rata setiap baris hamming distance pada seleksi fitur
         %-----------------------------------------------------------------------        
         MW1_19_Avg_HamDist_new{1,iFitur}{iFold,1}(:,1) = mean(MW1_17_HamDist_C1_new{1,iFitur}{iFold,1},2); % Rata-rata per baris
-            %---------------------------------------------------------
-            % Selama tidak ada metrik kosong pada hamming distance C2
-            %---------------------------------------------------------
+        %---------------------------------------------------------
+        % Selama tidak ada metrik kosong pada hamming distance C2
+        %---------------------------------------------------------
         if size(MW1_18_HamDist_C2_new{1,iFitur}{iFold,1},1) ~= 0 
             MW1_19_Avg_HamDist_new{1,iFitur}{iFold,1}(:,2) = mean(MW1_18_HamDist_C2_new{1,iFitur}{iFold,1},2); % Rata-rata per baris
-            %--------------------------------------------------
-            % Kalau ADA metrik kosong pada hamming distance C2
-            %--------------------------------------------------
+        %--------------------------------------------------
+        % Kalau ADA metrik kosong pada hamming distance C2
+        %--------------------------------------------------
         else
             for iKosong = 1 : size(MW1_02_Train{1,iFitur}{iFold,1},1)
                 MW1_19_Avg_HamDist_new{1,iFitur}{iFold,1}(iKosong,2) = 9999; % Sengaja dibuat jauh jaraknya
@@ -392,51 +412,82 @@ for iFitur = 37 : -1 : 1 %Decrement
             % Cek apakah susunan masing-masing anggota sudah sama? Kalau YA, langsung ambil titik C1 dan C2
             %------------------------------------------------------------------------------------------------
             if MW1_23_Anggota_C1_Awal{1,iFitur}{iFold,1} == MW1_26_Anggota_C1_Temp{1,iFitur}{iFold,1}
-                Joss{1,iFitur}{iFold,1} = 11111;
+                %Joss{1,iFitur}{iFold,1} = 11111;
                 MW1_31_Titik_C1_Temp{1,iFitur}{iFold,1} = MW1_15_Titik_C1_New{1,iFitur}{iFold,1};
                 MW1_32_Titik_C2_Temp{1,iFitur}{iFold,1} = MW1_16_Titik_C2_New{1,iFitur}{iFold,1};
             %--------------------------------------------------------------------
             % Kalau susunan beda, lakukan iterasi hingga kedua anggota konvergen
             %--------------------------------------------------------------------
             else
-                Joss{1,iFitur}{iFold,1} = [];
+                %Joss{1,iFitur}{iFold,1} = [];
                 MW1_44_JumlahIterasi{1,iFitur}{iFold,1} = MW1_44_JumlahIterasi{1,iFitur}{iFold,1} + 1; %counter iterasi
-                %------------------------------------
-                % Cari anggota baru hingga konvergen
-                %------------------------------------
+                %----------------------------------------------------------------------
+                % Cari anggota baru hingga konvergen --> Panggil method WHILE konvergen
+                %----------------------------------------------------------------------
                 konvergensi_fix; %Panggil method WHILE konvergen                
             end
+        %---------------------------------------------------------------
+        % Kalau LENGTH anggota C1 (awal) != LENGTH anggota C1_new (temp)
+        %---------------------------------------------------------------
         else
-            Joss{1,iFitur}{iFold,1} = [];
+            %Joss{1,iFitur}{iFold,1} = [];
             MW1_44_JumlahIterasi{1,iFitur}{iFold,1} = MW1_44_JumlahIterasi{1,iFitur}{iFold,1} + 1; %counter iterasi
-            %------------------------------------
-            % Cari anggota baru hingga konvergen
-            %------------------------------------
+            %----------------------------------------------------------------------
+            % Cari anggota baru hingga konvergen --> Panggil method WHILE konvergen
+            %----------------------------------------------------------------------
             konvergensi_fix; %Panggil method WHILE konvergen            
         end
           
 %==============================================================================================
 %                                   ==  TESTING  ===
 %==============================================================================================    
-        %---------------------------------------------------------        
-        %Pengujian per FOLD (ada 5) di setiap iterasi TOP X FITUR
-        %---------------------------------------------------------        
-        testing_fix;
+        
+        %-----------------------------------------------------------
+        % Pengujian per FOLD (ada 5) di setiap iterasi TOP X FITUR 
+        %----------------------------------------------------------- 
+        testing_fix; %(TP, FN, TN, FP) ==> (PD, PF, BAL)
                 
     %---    
     end
 %---
 end
 
-[nilai,urutan] = max(MW1_50_Mean_PD);
-MW1_55_MAX_Mean_PD = [seed,nilai,urutan]; %record nilai maximum PD dan urutan ke berapa
-
-clear cvFolds iFold testIdx k iFitur konvergen kFalse kTrue nilai urutan seed;
-
 toc
 
-MW1_55_MAX_Mean_PD(1,4) = size(MW1_01_IG,2)-1; %Simpan jumlah banyaknya fitur
-MW1_55_MAX_Mean_PD(1,5) = toc; %Simpan nilai elapsed time (seconds)
+%----------------------
+% MW1_55_MAX_Mean_PD:
+%----------------------
+% [1] Urutan
+% [2] Nilai MAX
+%----------------------
+[nilai,urutan] = max(MW1_50_Mean_PD); %Cari nilai maximum PD dan urutannya
+MW1_55_MAX_Mean_PD = [urutan nilai]; %Simpan ke 'MW1_55_MAX_Mean_PD'
+clear nilai urutan;
+
+%----------------------
+% MW1_56_MIN_Mean_PF:
+%----------------------
+% [1] Urutan
+% [2] Nilai MIN
+%----------------------
+[nilai,urutan] = min(MW1_52_Mean_PF); %Cari nilai minimum PF dan urutannya
+MW1_56_MIN_Mean_PF = [urutan nilai]; %Simpan ke 'MW1_56_MIN_Mean_PF'
+clear nilai urutan;
+
+%----------------------
+% MW1_57_MAX_Mean_BAL:
+%----------------------
+% [1] Urutan
+% [2] Nilai MAX
+% [3] Jumlah fitur
+% [4] Elapsed time
+% [5] Seed
+%----------------------
+[nilai,urutan] = max(MW1_54_Mean_BAL); %Cari nilai maximum BAL dan urutannya
+MW1_57_MAX_Mean_BAL = [urutan nilai size(MW1_01_IG,2)-1 toc seed]; %Simpan ke 'MW1_57_MAX_Mean_BAL'
+clear nilai urutan;
+
+clear cvFolds iFold testIdx k iFitur konvergen kFalse kTrue seed;
 
 disp('Saving...');
     tic
@@ -444,6 +495,6 @@ disp('Saving...');
     toc
 disp('Done!');
 
-load gong %chirp
+load chirp %gong
 sound(y,Fs)
 clear y Fs;

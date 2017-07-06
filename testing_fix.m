@@ -76,25 +76,7 @@
         elseif fgC2 == size(MW1_03_Test{1,iFitur}{iFold,1},1)
             MW1_42_Test_Anggota_C1{1,iFitur}{iFold,1} = [];
         end
-        clear fgC1 fgC2 iBarisKelompok;                                  
-        
-%         %-----------------------------------------------------------------------------------------------------------------
-%         % Prevent Fold "MW1_43_Test_Anggota_C2" yang hilang karena tidak dianggap ada oleh matLab, dibuat matrix kosong []  
-%         %-----------------------------------------------------------------------------------------------------------------
-%         if size(MW1_42_Test_Anggota_C1{1,iFitur}{iFold,1},1) ~= 0
-%             if size(MW1_42_Test_Anggota_C1{1,iFitur}{iFold,1},1) == size(MW1_03_Test{1,iFitur}{iFold,1},1)
-%                 MW1_43_Test_Anggota_C2{1,iFitur}{iFold,1} = [];
-%             end
-%         end        
-%         
-%         %-----------------------------------------------------------------------------------------------------------------
-%         % Prevent Fold "MW1_42_Test_Anggota_C1" yang hilang karena tidak dianggap ada oleh matLab, dibuat matrix kosong []  
-%         %-----------------------------------------------------------------------------------------------------------------
-%         if size(MW1_43_Test_Anggota_C2{1,iFitur}{iFold,1},1) ~= 0
-%             if size(MW1_43_Test_Anggota_C2{1,iFitur}{iFold,1},1) == size(MW1_03_Test{1,iFitur}{iFold,1},1)
-%                 MW1_42_Test_Anggota_C1{1,iFitur}{iFold,1} = [];
-%             end
-%         end   
+        clear fgC1 fgC2 iBarisKelompok;                                          
                                 
 %==============================================================================================
 %                              ==  MW1_45_TP_ && MW1_46_FP_  ===
@@ -181,7 +163,11 @@
         %-----------------
         % PD = tp/(tp+fn)
         %-----------------
-        MW1_49_PD{1,iFitur}(iFold,1) = MW1_45_TP_{1,iFitur}{iFold,1}/(MW1_45_TP_{1,iFitur}{iFold,1} + MW1_47_FN_{1,iFitur}{iFold,1});
+        if  MW1_45_TP_{1,iFitur}{iFold,1} == 0
+            MW1_49_PD{1,iFitur}(iFold,1) = 0;
+        else
+            MW1_49_PD{1,iFitur}(iFold,1) = MW1_45_TP_{1,iFitur}{iFold,1}/(MW1_45_TP_{1,iFitur}{iFold,1} + MW1_47_FN_{1,iFitur}{iFold,1});
+        end        
         %---------
         % Mean PD
         %---------
