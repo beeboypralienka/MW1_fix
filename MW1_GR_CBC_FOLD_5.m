@@ -15,12 +15,11 @@ MW1_01_GR = csvread('03_SeleksiFitur\MW1_GR\MW1_GR.csv');
 %-------------
 k = 5;
 vektorMW1 = MW1_01_GR(:,1);
-rng(1);
+rng(9);
 cvFolds = crossvalind('Kfold', vektorMW1, k);
 clear vektorMW1; 
     
 disp('MW1_GR Calculation in progress...');
-disp('TEeeeeeeeeeeeeeeeessssssst!!');
 
 for iFitur = 37 : -1 : 1
 %---
@@ -43,15 +42,15 @@ for iFitur = 37 : -1 : 1
         %------------------------------------------------------------------
         iTraining = 1; 
         iTesting = 1;                     
-        for iBarisData = 1 : length(MW1_01_GR)            
+        for iBarisData = 1 : size(MW1_01_GR,1)            
             if MW1_00_TrainIdx(iBarisData,iFold) == 1 %---- TRAINING                 
-                MW1_02_Train{1,iFitur}{iFold,1}(iTraining,1:iFitur) = MW1_01_GR(iTraining,1:iFitur); 
-                MW1_02_Train{1,iFitur}{iFold,1}(iTraining,iFitur+1) = MW1_01_GR(iTraining,38); % Tambah kelas
+                MW1_02_Train{1,iFitur}{iFold,1}(iTraining,1:iFitur) = MW1_01_GR(iBarisData,1:iFitur); 
+                MW1_02_Train{1,iFitur}{iFold,1}(iTraining,iFitur+1) = MW1_01_GR(iBarisData,38); % Tambah kelas
                 MW1_02_Train{1,iFitur}{iFold,1}(iTraining,iFitur+2) = iBarisData; % Tambah urutan data
                 iTraining = iTraining + 1;            
             else %---- TESTING                                        
-                MW1_03_Test{1,iFitur}{iFold,1}(iTesting,1:iFitur) = MW1_01_GR(iTesting,1:iFitur);            
-                MW1_03_Test{1,iFitur}{iFold,1}(iTesting,iFitur+1) = MW1_01_GR(iTesting,38); % Tambah kelas
+                MW1_03_Test{1,iFitur}{iFold,1}(iTesting,1:iFitur) = MW1_01_GR(iBarisData,1:iFitur);            
+                MW1_03_Test{1,iFitur}{iFold,1}(iTesting,iFitur+1) = MW1_01_GR(iBarisData,38); % Tambah kelas
                 MW1_03_Test{1,iFitur}{iFold,1}(iTesting,iFitur+2) = iBarisData; % Tambah urutan data
                 iTesting = iTesting + 1;
             end                        
@@ -259,7 +258,7 @@ for iFitur = 37 : -1 : 1
             %------------------------------------------------------------------------------------------------
             % Prevent Fold < 10 untuk anggota C2, jadi metrik kosong di akhir dianggap tidak ada sama matLab    
             %------------------------------------------------------------------------------------------------
-            if length(MW1_11_Anggota_C1{1,iFitur}{iFold,1}) == size(MW1_02_Train{1,iFitur}{iFold,1},1)
+            if size(MW1_11_Anggota_C1{1,iFitur}{iFold,1},1) == size(MW1_02_Train{1,iFitur}{iFold,1},1)
                 MW1_16_Titik_C2_New{1,iFitur}{iFold,1} = [];
             end            
         end
@@ -307,13 +306,13 @@ for iFitur = 37 : -1 : 1
             %---------------------------------------------------------
             % Selama tidak ada metrik kosong pada hamming distance C2
             %---------------------------------------------------------
-        if length(MW1_18_HamDist_C2_new{1,iFitur}{iFold,1}) ~= 0 
+        if size(MW1_18_HamDist_C2_new{1,iFitur}{iFold,1},1) ~= 0 
             MW1_19_Avg_HamDist_new{1,iFitur}{iFold,1}(:,2) = mean(MW1_18_HamDist_C2_new{1,iFitur}{iFold,1},2); % Rata-rata per baris
             %--------------------------------------------------
             % Kalau ADA metrik kosong pada hamming distance C2
             %--------------------------------------------------
         else
-            for iKosong = 1 : length(MW1_02_Train{1,iFitur}{iFold,1})
+            for iKosong = 1 : size(MW1_02_Train{1,iFitur}{iFold,1},1)
                 MW1_19_Avg_HamDist_new{1,iFitur}{iFold,1}(iKosong,2) = 9999; % Sengaja dibuat jauh jaraknya
             end            
         end 
@@ -349,7 +348,7 @@ for iFitur = 37 : -1 : 1
         %-----------------------------------------------------------------------------------------------------------------
         % Prevent Fold "MW1_21_Anggota_C2_new" yang hilang karena tidak dianggap ada oleh matLab, dibuat matrix kosong []  
         %-----------------------------------------------------------------------------------------------------------------
-        if length(MW1_20_Anggota_C1_new{1,iFitur}{iFold,1}) == length(MW1_02_Train{1,iFitur}{iFold,1})
+        if size(MW1_20_Anggota_C1_new{1,iFitur}{iFold,1},1) == size(MW1_02_Train{1,iFitur}{iFold,1},1)
             MW1_21_Anggota_C2_new{1,iFitur}{iFold,1} = [];
         end        
         clear fgC1 fgC2 iBarisKelompok;  
@@ -439,7 +438,7 @@ for iFitur = 37 : -1 : 1
             % Hitung hamming distance masing-masing fitur terhadap "C1_temp" dan "C2_temp"
             %------------------------------------------------------------------------------
             for iKolomCluster = 1 : iFitur
-                for iBarisCluster = 1 : length(MW1_02_Train{1,iFitur}{iFold,1})              
+                for iBarisCluster = 1 : size(MW1_02_Train{1,iFitur}{iFold,1},1)              
                     %-------------------------------------------
                     % Hitung jarak data ke titik cluster "temp"
                     %-------------------------------------------
@@ -453,7 +452,7 @@ for iFitur = 37 : -1 : 1
                     %------------------------------
                     % Jarak tiap fitur ke "C2_temp"
                     %------------------------------                
-                    if length(MW1_32_Titik_C2_Temp{1,iFitur}{iFold,1}) ~= 0                                        
+                    if size(MW1_32_Titik_C2_Temp{1,iFitur}{iFold,1},1) ~= 0                                        
                         C2 = MW1_32_Titik_C2_Temp{1,iFitur}{iFold,1}(1,iKolomCluster);                  
                         jarakHamming = hammingDistance_fix(data,C2);
                         MW1_34_HamDist_C2_Temp{1,iFitur}{iFold,1}(iBarisCluster,iKolomCluster) = jarakHamming;                    
@@ -470,13 +469,13 @@ for iFitur = 37 : -1 : 1
             %---------------------------------------------------------
             % Selama tidak ada metrik kosong pada hamming distance C2
             %---------------------------------------------------------
-            if length(MW1_34_HamDist_C2_Temp{1,iFitur}{iFold,1}) ~= 0 
+            if size(MW1_34_HamDist_C2_Temp{1,iFitur}{iFold,1},1) ~= 0 
                 MW1_35_Avg_HamDist_Temp{1,iFitur}{iFold,1}(:,2) = mean(MW1_34_HamDist_C2_Temp{1,iFitur}{iFold,1},2); % Rata-rata per baris
             %--------------------------------------------------
             % Kalau ADA metrik kosong pada hamming distance C2
             %--------------------------------------------------
             else
-                for iKosong = 1 : length(MW1_02_Train{1,iFitur}{iFold,1})
+                for iKosong = 1 : size(MW1_02_Train{1,iFitur}{iFold,1},1)
                     MW1_35_Avg_HamDist_Temp{1,iFitur}{iFold,1}(iKosong,2) = 9999; % Sengaja dibuat jauh jaraknya
                 end            
             end 
@@ -485,7 +484,7 @@ for iFitur = 37 : -1 : 1
             %----------------------------------------------------------------------------------------
             % Penentuan status anggota "C1_temp" atau "C2_temp" berdasarkan jarak rata-rata terdekat
             %----------------------------------------------------------------------------------------
-            for iBarisAvg = 1 : length(MW1_02_Train{1,iFitur}{iFold,1})        
+            for iBarisAvg = 1 : size(MW1_02_Train{1,iFitur}{iFold,1},1)        
                 averageC1 = MW1_35_Avg_HamDist_Temp{1,iFitur}{iFold,1}(iBarisAvg,1);            
                 averageC2 = MW1_35_Avg_HamDist_Temp{1,iFitur}{iFold,1}(iBarisAvg,2);                                 
                 if averageC1 > averageC2                                
@@ -500,7 +499,7 @@ for iFitur = 37 : -1 : 1
             %------------------------------------------------------------------------
             fgC1 = 0;
             fgC2 = 0;
-            for iBarisKelompok = 1 : length(MW1_02_Train{1,iFitur}{iFold,1})  
+            for iBarisKelompok = 1 : size(MW1_02_Train{1,iFitur}{iFold,1},1)  
                 if MW1_35_Avg_HamDist_Temp{1,iFitur}{iFold,1}(iBarisKelompok,3) == 11111     
                     fgC1 = fgC1 + 1;
                     MW1_36_Anggota_C1_newTemp{1,iFitur}{iFold,1}(fgC1,:) = MW1_02_Train{1,iFitur}{iFold,1}(iBarisKelompok,1:iFitur+2);                
@@ -512,7 +511,7 @@ for iFitur = 37 : -1 : 1
             %-----------------------------------------------------------------------------------------------------------------
             % Prevent Fold "MW1_21_Anggota_C2_new" yang hilang karena tidak dianggap ada oleh matLab, dibuat matrix kosong []  
             %-----------------------------------------------------------------------------------------------------------------
-            if length(MW1_36_Anggota_C1_newTemp{1,iFitur}{iFold,1}) == length(MW1_02_Train{1,iFitur}{iFold,1})
+            if size(MW1_36_Anggota_C1_newTemp{1,iFitur}{iFold,1},1) == size(MW1_02_Train{1,iFitur}{iFold,1},1)
                 MW1_21_Anggota_C2_newTemp{1,iFitur}{iFold,1} = [];
             end        
             clear fgC1 fgC2 iBarisKelompok;            
@@ -532,7 +531,7 @@ for iFitur = 37 : -1 : 1
             %------------------------------------------------
             % Kondisi kalau sudah konvergen, "Awal" = "Temp"
             %------------------------------------------------
-            if length(MW1_23_Anggota_C1_Awal{1,iFitur}{iFold,1}) == length(MW1_26_Anggota_C1_Temp{1,iFitur}{iFold,1})
+            if size(MW1_23_Anggota_C1_Awal{1,iFitur}{iFold,1},1) == size(MW1_26_Anggota_C1_Temp{1,iFitur}{iFold,1},1)
                 if MW1_23_Anggota_C1_Awal{1,iFitur}{iFold,1} == MW1_26_Anggota_C1_Temp{1,iFitur}{iFold,1}
                     konvergen = false;                
                     break
@@ -596,7 +595,7 @@ for iFitur = 37 : -1 : 1
         %-------------------------------------------------------------------
         % Penentuan anggota C1 atau C2 berdasarkan jarak rata-rata terdekat
         %-------------------------------------------------------------------
-        for iBarisAvg = 1 : length(MW1_03_Test{1,iFitur}{iFold,1})
+        for iBarisAvg = 1 : size(MW1_03_Test{1,iFitur}{iFold,1},1)
             averageC1 = MW1_41_Test_Avg_HamDist{1,iFitur}{iFold,1}(iBarisAvg,1);
             averageC2 = MW1_41_Test_Avg_HamDist{1,iFitur}{iFold,1}(iBarisAvg,2);                                    
             if averageC1 > averageC2                
@@ -611,7 +610,7 @@ for iFitur = 37 : -1 : 1
         %-----------------------------------------------------------------------
         fgC1 = 0;
         fgC2 = 0;
-        for iBarisKelompok = 1 : length(MW1_03_Test{1,iFitur}{iFold,1})              
+        for iBarisKelompok = 1 : size(MW1_03_Test{1,iFitur}{iFold,1},1)              
             if MW1_41_Test_Avg_HamDist{1,iFitur}{iFold,1}(iBarisKelompok,3) == 11111                     
                 fgC1 = fgC1 + 1;
                 MW1_42_Test_Anggota_C1{1,iFitur}{iFold,1}(fgC1,:) = MW1_03_Test{1,iFitur}{iFold,1}(iBarisKelompok,1:iFitur+2);                
